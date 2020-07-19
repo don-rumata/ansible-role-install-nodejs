@@ -1,8 +1,7 @@
 ---
 - name: Get releases info from API
   uri:
-    # url: {{ nodejs_index_json_url }}
-    url: http://172.16.11.8/soft/nodejs/index.json
+    url: '{{ nodejs_index_json_url }}'
     method: GET
     return_content: yes
   delegate_to: localhost
