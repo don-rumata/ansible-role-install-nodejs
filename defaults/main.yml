@@ -1,0 +1,36 @@
+---
+#--- NodeJS method install ---#
+nodejs_method_install: package-manager
+# nodejs_method_install: snap
+
+#--- Version section ---#
+nodejs_major_version: 'lts'
+# nodejs_major_version: 'current'
+# nodejs_major_version: 14
+# nodejs_major_version: 12
+# nodejs_major_version: 10
+
+#--- Snap section ---#
+ansible_role_for_install_snap: don_rumata.ansible_role_install_snap
+
+#--- Proxy section ---#
+nodejs_use_over_proxy: false
+# nodejs_use_over_proxy: true
+nodejs_proxy_host: proxy.example.com
+nodejs_proxy_port: 3128
+nodejs_proxy_string: http://{{ nodejs_proxy_host }}:{{ nodejs_proxy_port }}
+
+#--- Repo section ---#
+nodejs_index_json_url: https://nodejs.org/dist/index.json
+nodejs_repo_deb_key: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+nodejs_repo_rpm_key: https://rpm.nodesource.com/pub/el/NODESOURCE-GPG-SIGNING-KEY-EL
+
+# https://nodejs.org/dist/v12.18.2/SHASUMS256.txt
+nodejs_checksum_algorithm: sha256
+
+#--- Local paths section ---#
+nodejs_windows_local_download_path: '{{ ansible_env.TMP }}\nodejs'
+
+# If you *NOT* use apt-cacher-ng or other caching proxy - select "https".
+http_or_https: http
+# http_or_https: https

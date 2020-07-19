@@ -1,0 +1,99 @@
+---
+# https://github.com/ansible/ansible/issues/29451#issuecomment-333780895
+- name: Install NodeJS 4 Debian\Ubuntu
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_pkg_mgr == 'apt'
+  become: yes
+  apt:
+    name:
+      # - nodejs
+      # - nodejs={{ ansible_facts.packages['nodejs'][0].version }}
+      - nodejs={{ nodejs_full_version_fact }}-1nodesource1
+    state: present
+    install_recommends: yes
+    force: yes
+
+- name: Install NodeJS 4 CentOS\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'yum'
+  become: yes
+  vars:
+    # https://stackoverflow.com/a/47091066/5430535
+    # https://github.com/ansible/ansible/issues/32532#issuecomment-341641007
+    ansible_python_interpreter: /usr/bin/python2.7
+  yum:
+    name:
+      - nodejs
+      - libselinux-python
+      - libselinux-python3
+    state: present
+
+- name: Install NodeJS 4 Fedora
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+  become: yes
+  dnf:
+    name:
+      - nodejs
+    state: present
+
+- name: Install NodeJS 4 OpenSUSE
+  when:
+    - ansible_system == 'Linux'
+    - ansible_os_family == 'Suse'
+    - ansible_pkg_mgr == 'zypper'
+  become: yes
+  zypper:
+      name: nodejs{{ nodejs_major_version_fact }}
+      state: present
+      disable_recommends: no
+
+#---
+
+- name: Download NodeJS 4 Windows
+  when: ansible_os_family == 'Windows'
+  become: yes
+  become_method: runas
+  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+  block:
+    - win_file:
+        path: '{{ nodejs_windows_local_download_path }}'
+        state: directory
+    - win_get_url:
+        url: '{{ nodejs_direct_download_url }}'
+        dest: '{{ nodejs_windows_local_download_path }}\{{ nodejs_installer_file }}'
+        checksum_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/SHASUMS256.txt
+        checksum_algorithm: sha256
+
+- name: Install NodeJS 4 Windows
+  when: ansible_os_family == 'Windows'
+  become: yes
+  become_method: runas
+  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+  win_package:
+    path: '{{ nodejs_windows_local_download_path }}\{{ nodejs_installer_file }}'
+    state: present
+    wait: true
+
+- name: Create npm directory 4 Windows
+  when: ansible_os_family == 'Windows'
+  become: yes
+  become_method: runas
+  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+  win_file:
+    path: '{{ ansible_env.ProgramData }}\npm'
+    state: directory
+
+- name: Create NodeJS %path% 4 Windows
+  when: ansible_os_family == 'Windows'
+  become: yes
+  become_method: runas
+  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+  win_path:
+    elements:
+      - '{{ ansible_env.ProgramFiles }}\nodejs'
+      - '{{ ansible_env.ProgramData }}\npm'
+    state: present

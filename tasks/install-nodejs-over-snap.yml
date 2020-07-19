@@ -1,0 +1,9 @@
+---
+# https://unix.stackexchange.com/a/493122
+- name: Install NodeJS 4 any Linux over Snapd
+  when: ansible_system == 'Linux'
+  snap:
+    name: node
+    channel: '{{ nodejs_major_version_fact }}/stable'
+    classic: yes
+    state: present

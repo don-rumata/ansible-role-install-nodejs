@@ -1,0 +1,150 @@
+---
+- name: Add NodeJS repo key 4 Debian\Ubuntu
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_pkg_mgr == 'apt'
+  become: yes
+  apt_key:
+    url: "{{ nodejs_repo_deb_key }}"
+    state: present
+
+- name: Add NodeJS repo 4 Debian\Ubuntu
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_pkg_mgr == 'apt'
+  become: yes
+  apt_repository:
+    repo: '{{ item }}'
+    state: present
+    filename: nodesource
+  with_items:
+    - deb {{ http_or_https }}://deb.nodesource.com/node_{{ nodejs_major_version_fact }}.x {{ ansible_distribution_release }} main
+    - deb-src {{ http_or_https }}://deb.nodesource.com/node_{{ nodejs_major_version_fact }}.x {{ ansible_distribution_release }} main
+  tags:
+    - linux
+    - ubuntu
+    - nodejs
+    - js
+
+# https://github.com/nodesource/distributions#debmanual
+- name: Remove old NodeJS ppa
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_pkg_mgr == 'apt'
+  become: yes
+  apt_repository: 
+    repo: ppa:chris-lea/node.js
+    state: absent
+
+#---
+
+- name: Add repo NodeJS 4 CentOS\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'yum'
+  become: yes
+  vars:
+    # https://stackoverflow.com/a/47091066/5430535
+    # https://github.com/ansible/ansible/issues/32532#issuecomment-341641007
+    ansible_python_interpreter: /usr/bin/python2.7
+  yum_repository:
+    file: nodesource-el{{ ansible_distribution_major_version }}
+    name: nodesource
+    description: Node.js Packages for Enterprise Linux {{ ansible_distribution_major_version }} - $basearch
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/el/{{ ansible_distribution_major_version }}/$basearch'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    enabled: yes
+    gpgcheck: yes
+    state: present
+
+- name: Add source repo NodeJS 4 CentOS\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'yum'
+  become: yes
+  vars:
+    # https://stackoverflow.com/a/47091066/5430535
+    # https://github.com/ansible/ansible/issues/32532#issuecomment-341641007
+    ansible_python_interpreter: /usr/bin/python2.7
+  yum_repository:
+    file: nodesource-el{{ ansible_distribution_major_version }}
+    name: nodesource-source
+    description: Node.js for Enterprise Linux {{ ansible_distribution_major_version }} - $basearch - Source
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/el/{{ ansible_distribution_major_version }}/SRPMS'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    failovermethod: priority
+    enabled: no
+    gpgcheck: yes
+    state: present
+
+- name: Add repo NodeJS 4 Fedora
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+  become: yes
+  yum_repository:
+    file: nodesource-fc{{ ansible_distribution_major_version }}
+    name: nodesource
+    description: Node.js Packages for Fedora Linux {{ ansible_distribution_major_version }} - $basearch
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/fc/{{ ansible_distribution_major_version }}/$basearch'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    failovermethod: priority
+    enabled: yes
+    gpgcheck: yes
+    state: present
+
+- name: Add source repo NodeJS 4 Fedora
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+  become: yes
+  yum_repository:
+    file: nodesource-fc{{ ansible_distribution_major_version }}
+    name: nodesource-source
+    description: Node.js Packages for Fedora Linux {{ ansible_distribution_major_version }} - $basearch - Source
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/fc/{{ ansible_distribution_major_version }}/SRPMS'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    failovermethod: priority
+    enabled: no
+    gpgcheck: yes
+    state: present
+
+#---
+
+# https://github.com/nodesource/distributions/issues/199#issuecomment-222589172
+- name: Add repo NodeJS 4 OpenSUSE Leap
+  when:
+    - ansible_system == 'Linux'
+    - ansible_os_family == 'Suse'
+    - ansible_pkg_mgr == 'zypper'
+    - ansible_distribution != "openSUSE Tumbleweed"
+  become: yes
+  zypper_repository:
+    name: devel_languages_nodejs
+    description: 'Node.js ({{ ansible_distribution | replace(" ", "_") }}_{{ ansible_distribution_version }})'
+    repo: '{{ http_or_https }}://download.opensuse.org/repositories/devel:/languages:/nodejs/{{ ansible_distribution | replace(" ", "_") }}_{{ ansible_distribution_version }}/'
+    state: present
+    auto_import_keys: yes
+    runrefresh: yes
+    autorefresh: no
+
+- name: Add repo NodeJS 4 OpenSUSE Tumbleweed
+  when:
+    - ansible_system == 'Linux'
+    - ansible_os_family == 'Suse'
+    - ansible_pkg_mgr == 'zypper'
+    - ansible_distribution == "openSUSE Tumbleweed"
+  become: yes
+  zypper_repository:
+    name: devel_languages_nodejs
+    description: 'Node.js ({{ ansible_distribution | replace(" ", "_") }}_{{ ansible_distribution_version }})'
+    repo: '{{ http_or_https }}://download.opensuse.org/repositories/devel:/languages:/nodejs/{{ ansible_distribution | replace(" ", "_") }}/'
+    state: present
+    auto_import_keys: yes
+    runrefresh: yes
+    autorefresh: no
+
+# - package_facts:
+
+# - debug:
+#     msg: "{{ ansible_facts.packages['nodejs'][0].version }}"

@@ -1,0 +1,52 @@
+---
+- name: Get releases info from API
+  uri:
+    # url: {{ nodejs_index_json_url }}
+    url: http://172.16.11.8/soft/nodejs/index.json
+    method: GET
+    return_content: yes
+  delegate_to: localhost
+  register: nodejs_index
+
+- name: Get latest lts or current version
+  when: (nodejs_major_version == 'lts' or nodejs_major_version == 'current')
+  vars:
+    query_feature_version:
+      # "[?lts != `false`].version | [0]"
+      "[?{{ nodejs_major_version }} != `false`].version | [0]"
+  block:
+    - set_fact:
+        nodejs_full_version_fact: "{{ nodejs_index.json | json_query(query_feature_version) | replace('v', '') }}"
+    - set_fact:
+        nodejs_major_version_fact: "{{ nodejs_full_version_fact.split('.')[0] }}"
+
+# https://github.com/ansible/ansible/issues/27299#issuecomment-331068246
+# https://stackoverflow.com/a/44547305/5430535
+- name: Get latest custom version
+  when: not (nodejs_major_version == 'lts' or nodejs_major_version == 'current')
+  vars:
+    query_feature_version:
+      "[?contains(version, 'v{{ nodejs_major_version }}')].version | [0]"
+  block:
+    - set_fact:
+        nodejs_full_version_fact: "{{ nodejs_index.json | to_json | from_json | json_query(query_feature_version) | replace('v', '') }}"
+    - set_fact:
+        nodejs_major_version_fact: "{{ nodejs_full_version_fact.split('.')[0] }}"
+
+- name: Get download link 4 Windows
+  when: ansible_os_family == 'Windows'
+  block:
+    - set_fact:
+        nodejs_direct_download_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/node-v{{ nodejs_full_version_fact }}-x86.msi
+      when: ansible_env.PROCESSOR_ARCHITECTURE == 'x86'
+    - set_fact:
+        nodejs_direct_download_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/node-v{{ nodejs_full_version_fact }}-x64.msi
+      when: ansible_env.PROCESSOR_ARCHITECTURE == 'AMD64'
+
+- name: Set fact about NodeJS output file after download
+  when: ansible_os_family == 'Windows'
+  set_fact:
+    nodejs_installer_file: "{{ nodejs_direct_download_url | urlsplit('path') | basename }}"
+
+# - pause:
+#     echo: yes

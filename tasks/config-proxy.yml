@@ -1,0 +1,31 @@
+---
+# https://stackoverflow.com/a/43398997
+# https://stackoverflow.com/a/28218400
+# https://angular.io/guide/setup-local
+# https://www.jhipster.tech/configuring-a-corporate-proxy/
+- name: Config proxy 4 Windows
+  when: ansible_os_family == 'Windows'
+  become: yes
+  become_method: runas
+  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+  win_lineinfile:
+    path: '{{ ansible_env.ProgramFiles }}\nodejs\node_modules\npm\npmrc'
+    line: "{{ item }}"
+    state: present
+    backup: yes
+  with_items:
+    - proxy={{ nodejs_proxy_string }}
+    # - prefix={{ ansible_env.ProgramData }}\npm
+
+# https://linuxhowtos.org/manpages/5/npmrc.htm
+- name: Config proxy 4 Linux
+  when: ansible_system == 'Linux'
+  become: yes
+  lineinfile:
+    path: '/etc/npmrc'
+    line: "{{ item }}"
+    state: present
+    create: yes
+    backup: yes
+  with_items:
+    - proxy={{ nodejs_proxy_string }}

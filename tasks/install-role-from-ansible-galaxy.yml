@@ -1,0 +1,13 @@
+---
+# https://ru.stackoverflow.com/q/1154381/191416
+- name: Install role from Ansible Galaxy
+  when: ansible_system == 'Linux'
+  command: ansible-galaxy install {{ ansible_role_for_install_snap }}
+  register: install_role_from_ansible_galaxy
+  changed_when: install_role_from_ansible_galaxy.rc != 0
+  delegate_to: localhost
+
+- name: Install snap from role
+  when: ansible_system == 'Linux'
+  include_role:
+    name: '{{ ansible_role_for_install_snap }}'
