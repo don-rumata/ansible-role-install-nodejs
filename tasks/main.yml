@@ -12,7 +12,7 @@
 - import_tasks: install-role-from-ansible-galaxy.yml
   when: nodejs_method_install == 'snap'
 
-- import_tasks: install-nodejs-{{ nodejs_method_install }}.yml
+- import_tasks: install-nodejs-over-{{ nodejs_method_install }}.yml
 
 - import_tasks: config-proxy.yml
   when: nodejs_use_over_proxy == true
