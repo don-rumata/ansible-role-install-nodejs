@@ -8,7 +8,7 @@
       # - python-pip
       - python3-pip
       # - python-jmespath
-      - python3-jmespath
+      # - python3-jmespath
     state: present
 
 # https://groups.google.com/forum/#!topic/ansible-project/yO8dmKvNUIY
