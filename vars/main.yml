@@ -1,2 +1,5 @@
 ---
 # vars file for ansible-role-install-nodejs
+
+# 4 test!!!!!!!!!
+interpreter_python: python3
