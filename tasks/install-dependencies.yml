@@ -13,9 +13,9 @@
 - name: Install jmespath 4 Linux
   when:
     - ansible_system == 'Linux'
-  vars:
-    ansible_python_interpreter: python3
-  # become: yes
+  # vars:
+  #   ansible_python_interpreter: python3
+  become: yes
   pip:
     name:
       - jmespath
