@@ -5,9 +5,9 @@
   become: yes
   package:
     name:
-      - python-pip
+      # - python-pip
       - python3-pip
-      - python-jmespath
+      # - python-jmespath
       - python3-jmespath
     state: present
 
