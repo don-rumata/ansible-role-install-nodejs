@@ -15,7 +15,7 @@
     - ansible_system == 'Linux'
   # vars:
   #   ansible_python_interpreter: python3
-  become: yes
+  # become: yes
   pip:
     name:
       - jmespath
