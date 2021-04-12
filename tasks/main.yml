@@ -9,9 +9,6 @@
 - import_tasks: add-repo.yml
   when: nodejs_method_install == 'package-manager'
 
-- import_tasks: install-role-from-ansible-galaxy.yml
-  when: nodejs_method_install == 'snap'
-
 - import_tasks: install-nodejs-over-{{ nodejs_method_install }}.yml
 
 - import_tasks: config-proxy.yml

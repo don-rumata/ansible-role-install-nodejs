@@ -1,4 +1,5 @@
 ---
+# https://stackoverflow.com/a/50573098/5430535
 - name: Add NodeJS repo key 4 Debian\Ubuntu
   when:
     - ansible_os_family == 'Debian'
@@ -38,7 +39,7 @@
 
 #---
 
-- name: Add repo NodeJS 4 CentOS\RHEL
+- name: Add repo NodeJS 4 CentOS 7+\RHEL
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'yum'
@@ -57,7 +58,7 @@
     gpgcheck: yes
     state: present
 
-- name: Add source repo NodeJS 4 CentOS\RHEL
+- name: Add source repo NodeJS 4 CentOS 7+\RHEL
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'yum'
@@ -77,10 +78,49 @@
     gpgcheck: yes
     state: present
 
+#---
+
+- name: Add repo NodeJS 4 CentOS 8+\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'CentOS'
+  become: yes
+  yum_repository:
+    file: nodesource-el{{ ansible_distribution_major_version }}
+    name: nodesource
+    description: Node.js Packages for Fedora Linux {{ ansible_distribution_major_version }} - $basearch
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/el/{{ ansible_distribution_major_version }}/$basearch'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    failovermethod: priority
+    enabled: yes
+    gpgcheck: yes
+    state: present
+
+- name: Add source repo NodeJS 4 CentOS 8+\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'CentOS'
+  become: yes
+  yum_repository:
+    file: nodesource-el{{ ansible_distribution_major_version }}
+    name: nodesource-source
+    description: Node.js Packages for Fedora Linux {{ ansible_distribution_major_version }} - $basearch - Source
+    baseurl: '{{ http_or_https }}://rpm.nodesource.com/pub_{{ nodejs_major_version_fact }}.x/el/{{ ansible_distribution_major_version }}/SRPMS'
+    gpgkey: '{{ nodejs_repo_rpm_key }}'
+    failovermethod: priority
+    enabled: no
+    gpgcheck: yes
+    state: present
+
+#---
+
 - name: Add repo NodeJS 4 Fedora
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'Fedora'
   become: yes
   yum_repository:
     file: nodesource-fc{{ ansible_distribution_major_version }}
@@ -97,6 +137,7 @@
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'Fedora'
   become: yes
   yum_repository:
     file: nodesource-fc{{ ansible_distribution_major_version }}
@@ -114,10 +155,9 @@
 # https://github.com/nodesource/distributions/issues/199#issuecomment-222589172
 - name: Add repo NodeJS 4 OpenSUSE Leap
   when:
-    - ansible_system == 'Linux'
     - ansible_os_family == 'Suse'
     - ansible_pkg_mgr == 'zypper'
-    - ansible_distribution != "openSUSE Tumbleweed"
+    - ansible_distribution == 'openSUSE Leap'
   become: yes
   zypper_repository:
     name: devel_languages_nodejs
@@ -130,7 +170,6 @@
 
 - name: Add repo NodeJS 4 OpenSUSE Tumbleweed
   when:
-    - ansible_system == 'Linux'
     - ansible_os_family == 'Suse'
     - ansible_pkg_mgr == 'zypper'
     - ansible_distribution == "openSUSE Tumbleweed"

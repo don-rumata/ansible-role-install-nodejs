@@ -33,19 +33,26 @@
         nodejs_major_version_fact: "{{ nodejs_full_version_fact.split('.')[0] }}"
 
 - name: Get download link 4 Windows
-  when: ansible_os_family == 'Windows'
+  when:
+    - ansible_os_family == 'Windows'
+    - ansible_env.PROCESSOR_ARCHITECTURE == 'AMD64'
+  vars:
+    nodejs_direct_url_win_10_default: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/node-v{{ nodejs_full_version_fact }}-x64.msi
+    nodejs_direct_url_win_7_default: https://nodejs.org/dist/v12.19.0/node-v12.19.0-x64.msi
   block:
     - set_fact:
-        nodejs_direct_download_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/node-v{{ nodejs_full_version_fact }}-x86.msi
-      when: ansible_env.PROCESSOR_ARCHITECTURE == 'x86'
+        nodejs_direct_download_url_win_fact: "{{ nodejs_direct_url_win | default(nodejs_direct_url_win_10_default) }}"
+      when: ansible_distribution_major_version == '10'
+    # https://github.com/nodejs/node/pull/31954
     - set_fact:
-        nodejs_direct_download_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/node-v{{ nodejs_full_version_fact }}-x64.msi
-      when: ansible_env.PROCESSOR_ARCHITECTURE == 'AMD64'
+        nodejs_direct_download_url_win_fact: "{{ nodejs_direct_url_win | default(nodejs_direct_url_win_7_default) }}"
+        nodejs_full_version_fact: 12.19.0
+      when: ansible_distribution_major_version == '6'
 
-- name: Set fact about NodeJS output file after download
-  when: ansible_os_family == 'Windows'
-  set_fact:
-    nodejs_installer_file: "{{ nodejs_direct_download_url | urlsplit('path') | basename }}"
+# - name: Set fact about NodeJS output file after download
+#   when: ansible_os_family == 'Windows'
+#   set_fact:
+#     nodejs_installer_file_fact: "{{ nodejs_direct_download_url_win_fact | urlsplit('path') | basename }}"
 
 # - pause:
 #     echo: yes

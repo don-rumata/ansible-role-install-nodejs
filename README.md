@@ -8,14 +8,11 @@ Install [nodejs](https://nodejs.org/) for Linux and Windows.
 
 ### Ansible Galaxy style
 
-```yaml  platforms:
+```yaml
+  platforms:
     - name: Fedora
       versions:
-        - 28
-        - 29
-        - 30
-        - 31
-        - 32
+        - 33
     - name: Ubuntu
       versions:
         - trusty
@@ -39,12 +36,10 @@ Install [nodejs](https://nodejs.org/) for Linux and Windows.
     - name: opensuse
       vesrion:
         - tumbleweed
-        - 15.1
         - 15.2
     - name: Windows
       version:
         - 2008x64 (7 64bit)
-        - 2008x86 (7 32bit)
         - 2019 (10 64bit)
 ```
 
@@ -60,14 +55,11 @@ nodejs_method_install: package-manager
 # nodejs_method_install: snap
 
 #--- Version section ---#
-nodejs_major_version: 'lts'
-# nodejs_major_version: 'current'
+nodejs_major_version: lts
+# nodejs_major_version: current
 # nodejs_major_version: 14
 # nodejs_major_version: 12
 # nodejs_major_version: 10
-
-#--- Snap section ---#
-ansible_role_for_install_snap: don_rumata.ansible_role_install_snap
 
 #--- Proxy section ---#
 nodejs_use_over_proxy: false
@@ -81,11 +73,9 @@ nodejs_index_json_url: https://nodejs.org/dist/index.json
 nodejs_repo_deb_key: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
 nodejs_repo_rpm_key: https://rpm.nodesource.com/pub/el/NODESOURCE-GPG-SIGNING-KEY-EL
 
-# https://nodejs.org/dist/v12.18.2/SHASUMS256.txt
-nodejs_checksum_algorithm: sha256
-
-#--- Local paths section ---#
-nodejs_windows_local_download_path: '{{ ansible_env.TMP }}\nodejs'
+# If you have a copy on your local network
+# nodejs_direct_url_win: http://10.10.10.10/soft/nodejs/node-latest-amd64.msi
+# nodejs_direct_url_win: \\10.10.10.10\soft\nodejs\node-latest-amd64.msi
 
 # If you *NOT* use apt-cacher-ng or other caching proxy - select "https".
 http_or_https: http
@@ -100,9 +90,29 @@ Download and install [Windows Management Framework 5.1](https://www.microsoft.co
 
 ## HowTo
 
-Quick config WinRM for Windows: <https://ru.stackoverflow.com/a/949971/191416>
+### How to install role
 
-## Example Playbook
+Over `ansible-galaxy`:
+
+```bash
+ansible-galaxy install don_rumata.ansible_role_install_nodejs
+```
+
+Over `bash+git`:
+
+```bash
+mkdir -p "$HOME/.ansible/roles"
+cd "$HOME/.ansible/roles
+git clone https://github.com/don-rumata/ansible-role-install-nodejs don_rumata.ansible_role_install_nodejs
+```
+
+### Quick config WinRM for Windows
+
+<https://ru.stackoverflow.com/a/949971/191416>
+
+## Example Playbooks
+
+### I
 
 Install latest LTS nodejs on Windows or Linux over package manager of you distro:
 
@@ -115,8 +125,68 @@ Install latest LTS nodejs on Windows or Linux over package manager of you distro
   serial:
     - "100%"
   roles:
-    - ansible-role-install-nodejs
+    - don_rumata.ansible_role_install_nodejs
   tasks:
+```
+
+### II
+
+Install version `12`:
+
+`install-nodejs.yml`:
+
+```yaml
+- name: Install NodeJS
+  hosts: all
+  strategy: free
+  serial:
+    - "100%"
+  roles:
+    - role: ansible-role-install-nodejs
+      nodejs_major_version: 12
+  tasks:
+```
+
+### III
+
+Install different versions for different hosts:
+
+`install-nodejs.yml`:
+
+```yaml
+- name: Install NodeJS
+  hosts: all
+  strategy: free
+  serial:
+    - "100%"
+  roles:
+    - role: ansible-role-install-nodejs
+  tasks:
+```
+
+`nodejs-inventory.ini`:
+
+```ini
+[linux-hosts]
+debian-test-01.local
+ubuntu-test-01.local nodejs_method_install=snap
+centos-7-test-01.local ansible_python_interpreter=/usr/bin/python2
+centos-8-test-01.local
+opensuse-leap-test-01.local nodejs_major_version=12
+opensuse-tumbleweed-test-01.local
+fedora-33-test-01.local nodejs_use_over_proxy=true
+
+[windows-hosts]
+10.10.10.20
+10.10.10.21
+10.10.10.22
+10.10.10.23
+win7-64 nodejs_direct_url_win=http://10.10.10.10/soft/nodejs/7/node-v12.19.0-x64.msi
+win10-64 nodejs_direct_url_win=http://10.10.10.10/soft/nodejs/node-latest-amd64-{{ nodejs_major_version }}.msi
+```
+
+```bash
+ansible-playbook -i ./nodejs-inventory.ini ./install-nodejs.yml
 ```
 
 ## License

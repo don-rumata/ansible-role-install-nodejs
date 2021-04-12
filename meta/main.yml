@@ -11,11 +11,7 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
-        - 28
-        - 29
-        - 30
-        - 31
-        - 32
+        - 33
     - name: Ubuntu
       versions:
         - trusty
@@ -39,7 +35,6 @@ galaxy_info:
     - name: opensuse
       vesrion:
         - tumbleweed
-        - 15.1
         - 15.2
     # - name: ArchLinux
     #   version:
@@ -47,7 +42,6 @@ galaxy_info:
     - name: Windows
       version:
         - 2008x64
-        - 2008x86
         - 2019
 
   galaxy_tags:

@@ -7,14 +7,12 @@
   become: yes
   apt:
     name:
-      # - nodejs
-      # - nodejs={{ ansible_facts.packages['nodejs'][0].version }}
-      - nodejs={{ nodejs_full_version_fact }}-1nodesource1
+      - nodejs
     state: present
     install_recommends: yes
     force: yes
 
-- name: Install NodeJS 4 CentOS\RHEL
+- name: Install NodeJS 4 CentOS 7\RHEL
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'yum'
@@ -23,19 +21,36 @@
     # https://stackoverflow.com/a/47091066/5430535
     # https://github.com/ansible/ansible/issues/32532#issuecomment-341641007
     ansible_python_interpreter: /usr/bin/python2.7
-  yum:
+  package:
     name:
       - nodejs
       - libselinux-python
       - libselinux-python3
     state: present
 
+# https://github.com/ansible/ansible/issues/64852
+# https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8-ru
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html где '@postgresql:9.6'
+# /etc/dnf/modules.d/nodejs.module
+- name: Install NodeJS 4 CentOS 8+\RHEL
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'CentOS'
+  become: yes
+  package:
+    name:
+      - '@nodejs:{{ nodejs_major_version_fact }}'
+    state: present
+
+# У Федоры нет синтксиса "@пакет:канал" почему-то. Поэтому отдельно.
 - name: Install NodeJS 4 Fedora
   when:
     - ansible_os_family == 'RedHat'
     - ansible_pkg_mgr == 'dnf'
+    - ansible_distribution == 'Fedora'
   become: yes
-  dnf:
+  package:
     name:
       - nodejs
     state: present
@@ -47,26 +62,12 @@
     - ansible_pkg_mgr == 'zypper'
   become: yes
   zypper:
-      name: nodejs{{ nodejs_major_version_fact }}
-      state: present
-      disable_recommends: no
+    name:
+      - nodejs{{ nodejs_major_version_fact }}
+    state: present
+    disable_recommends: no
 
 #---
-
-- name: Download NodeJS 4 Windows
-  when: ansible_os_family == 'Windows'
-  become: yes
-  become_method: runas
-  become_flags: logon_type=new_credentials logon_flags=netcredentials_only
-  block:
-    - win_file:
-        path: '{{ nodejs_windows_local_download_path }}'
-        state: directory
-    - win_get_url:
-        url: '{{ nodejs_direct_download_url }}'
-        dest: '{{ nodejs_windows_local_download_path }}\{{ nodejs_installer_file }}'
-        checksum_url: https://nodejs.org/dist/v{{ nodejs_full_version_fact }}/SHASUMS256.txt
-        checksum_algorithm: sha256
 
 - name: Install NodeJS 4 Windows
   when: ansible_os_family == 'Windows'
@@ -74,7 +75,10 @@
   become_method: runas
   become_flags: logon_type=new_credentials logon_flags=netcredentials_only
   win_package:
-    path: '{{ nodejs_windows_local_download_path }}\{{ nodejs_installer_file }}'
+    path: '{{ nodejs_direct_download_url_win_fact }}'
+    product_id: 'Node.js'
+    creates_path: '{{ ansible_env.ProgramFiles }}\nodejs\node.exe'
+    creates_version: '{{ nodejs_full_version_fact }}'
     state: present
     wait: true
 
@@ -87,7 +91,7 @@
     path: '{{ ansible_env.ProgramData }}\npm'
     state: directory
 
-- name: Create NodeJS %path% 4 Windows
+- name: Create NodeJS %PATH% 4 Windows
   when: ansible_os_family == 'Windows'
   become: yes
   become_method: runas
